@@ -1,16 +1,28 @@
-# ai_assistent
+# AI Learning Assistant
 
-A new Flutter project.
+A Flutter application for enhancing classroom learning with AI assistance.
+
+## Project Overview
+
+This project is part of the Google Solution Challenge, providing a platform for teachers and students to interact, submit assignments, and receive AI-powered feedback.
+
+## Key Features
+
+- Teacher dashboard for managing classes, assignments, and reviews
+- Student portal for viewing assignments and receiving feedback
+- AI-powered assignment analysis and feedback generation
+- Real-time submission tracking and notifications
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+This project is built with Flutter. To get started:
 
-A few resources to get you started if this is your first Flutter project:
+1. Clone the repository
+2. Run `flutter pub get` to install dependencies
+3. Set up Supabase configuration in `lib/utils/supabase_config.dart`
+4. Run the app with `flutter run`
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Resources
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- [Flutter Documentation](https://docs.flutter.dev/)
+- [Supabase Documentation](https://supabase.io/docs)
