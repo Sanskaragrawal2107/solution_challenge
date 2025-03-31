@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import '../services/auth_service.dart';
 import 'login.dart';
-import 'homepage.dart';
+import 'teacher_page.dart';
+import 'student_page.dart';
 import 'package:flutter_svg/svg.dart';
 
 class SignupPage extends StatefulWidget {
@@ -10,16 +11,18 @@ class SignupPage extends StatefulWidget {
 }
 
 class _SignupPageState extends State<SignupPage> {
-  final _auth = FirebaseAuth.instance;
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _nameController = TextEditingController();
+  String _selectedRole = 'student';
 
   Future<void> _signup() async {
     try {
       final email = _emailController.text.trim();
       final password = _passwordController.text.trim();
       final confirmPassword = _confirmPasswordController.text.trim();
+      final name = _nameController.text.trim();
 
       if (password != confirmPassword) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -28,17 +31,28 @@ class _SignupPageState extends State<SignupPage> {
         return;
       }
 
-      UserCredential userCredential =
-      await _auth.createUserWithEmailAndPassword(email: email, password: password);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Signup Successful! Welcome ${userCredential.user?.email}')),
+      final response = await AuthService.signUp(
+        email: email,
+        password: password,
+        role: _selectedRole,
+        name: name,
       );
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => MyHomePage()), // Redirect to HomePage
-      );
+      if (response.user != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Signup Successful! Welcome ${response.user?.email}')),
+        );
+
+        // Navigate based on role
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => _selectedRole == 'teacher' 
+              ? TeacherHomePage() 
+              : StudentHomePage(),
+          ),
+        );
+      }
     } catch (e) {
       print("Signup failed: $e");
       ScaffoldMessenger.of(context).showSnackBar(
@@ -68,7 +82,7 @@ class _SignupPageState extends State<SignupPage> {
               padding: EdgeInsets.symmetric(horizontal: isDesktop ? 100 : 20),
               child: Container(
                 width: isDesktop ? 900 : double.infinity,
-                height: isDesktop ? 500 : null,
+                height: isDesktop ? 600 : null,
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.9), // Glass effect
                   borderRadius: BorderRadius.circular(20),
@@ -101,83 +115,112 @@ class _SignupPageState extends State<SignupPage> {
 
                     // Right Side - Signup Form
                     Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.all(30),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(
-                              'Create an Account',
-                              style: TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blueAccent,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            SizedBox(height: 20),
-
-                            // Email Field
-                            _buildTextField(_emailController, 'Email', Icons.email, false),
-
-                            SizedBox(height: 15),
-
-                            // Password Field
-                            _buildTextField(_passwordController, 'Password', Icons.lock, true),
-
-                            SizedBox(height: 15),
-
-                            // Confirm Password Field
-                            _buildTextField(_confirmPasswordController, 'Confirm Password',
-                                Icons.lock_outline, true),
-
-                            SizedBox(height: 25),
-
-                            // Signup Button
-                            ElevatedButton(
-                              onPressed: _signup,
-                              style: ElevatedButton.styleFrom(
-                                padding: EdgeInsets.symmetric(vertical: 14),
-                                backgroundColor: Colors.blue,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
+                      child: SingleChildScrollView(
+                        child: Padding(
+                          padding: EdgeInsets.all(30),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(
+                                'Create an Account',
+                                style: TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blueAccent,
                                 ),
+                                textAlign: TextAlign.center,
                               ),
-                              child: Text('Sign Up',
-                                  style: TextStyle(fontSize: 18,
-                                  // fontFamily: 'Nexa',
-                                      fontWeight: FontWeight.bold,
-                                  color: Colors.white),
-                              ),
-                            ),
+                              SizedBox(height: 20),
 
-                            SizedBox(height: 15),
+                              _buildTextField(_nameController, 'Full Name', Icons.person, false),
+                              SizedBox(height: 15),
+                              _buildTextField(_emailController, 'Email', Icons.email, false),
+                              SizedBox(height: 15),
+                              _buildTextField(_passwordController, 'Password', Icons.lock, true),
+                              SizedBox(height: 15),
+                              _buildTextField(_confirmPasswordController, 'Confirm Password',
+                                  Icons.lock_outline, true),
+                              SizedBox(height: 15),
 
-                            // Existing User? Login Here
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text("Already have an account? ", style: TextStyle(fontSize: 14)),
-                                GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(builder: (context) => LoginPage()),
-                                    );
-                                  },
-                                  child: Text(
-                                    "Login",
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.blueAccent,
-                                    ),
+                              // Role Selection
+                              Container(
+                                padding: EdgeInsets.symmetric(horizontal: 12),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: DropdownButtonHideUnderline(
+                                  child: DropdownButton<String>(
+                                    value: _selectedRole,
+                                    isExpanded: true,
+                                    items: [
+                                      DropdownMenuItem(
+                                        value: 'student',
+                                        child: Text('Student'),
+                                      ),
+                                      DropdownMenuItem(
+                                        value: 'teacher',
+                                        child: Text('Teacher'),
+                                      ),
+                                    ],
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _selectedRole = value!;
+                                      });
+                                    },
                                   ),
                                 ),
-                              ],
-                            ),
-                          ],
+                              ),
+
+                              SizedBox(height: 25),
+
+                              ElevatedButton(
+                                onPressed: _signup,
+                                style: ElevatedButton.styleFrom(
+                                  padding: EdgeInsets.symmetric(vertical: 14),
+                                  backgroundColor: Colors.blue,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                                child: Text(
+                                  'Sign Up',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+
+                              SizedBox(height: 15),
+
+                              // Existing User? Login Here
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text("Already have an account? ", style: TextStyle(fontSize: 14)),
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => LoginPage()),
+                                      );
+                                    },
+                                    child: Text(
+                                      "Login",
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.blueAccent,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),

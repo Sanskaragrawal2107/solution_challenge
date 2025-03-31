@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import '../services/auth_service.dart';
 import 'signup.dart';
 import 'teacher_page.dart';
+import 'student_page.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class LoginPage extends StatefulWidget {
@@ -10,7 +11,6 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final _auth = FirebaseAuth.instance;
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
@@ -26,43 +26,35 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
 
-      // Sign in with Firebase
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+      final response = await AuthService.signIn(
         email: email,
         password: password,
       );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Login Successful! Welcome ${userCredential.user?.email}'),
-        ),
-      );
+      if (response.user != null) {
+        // Get user role
+        final role = await AuthService.getUserRole();
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Login Successful! Welcome ${response.user?.email}')),
+        );
 
-      // Navigate to TeacherHomePage after successful login
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => TeacherHomePage()),
-      );
+        // Navigate based on role
+        if (role == 'teacher') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => TeacherHomePage()),
+          );
+        } else if (role == 'student') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => StudentHomePage()),
+          );
+        }
+      }
     } catch (e) {
       print("Login failed: $e");
       String errorMessage = "An error occurred during login.";
-
-      if (e is FirebaseAuthException) {
-        switch (e.code) {
-          case 'user-not-found':
-            errorMessage = 'No user found for that email.';
-            break;
-          case 'wrong-password':
-            errorMessage = 'Incorrect password provided.';
-            break;
-          case 'invalid-email':
-            errorMessage = 'The email address is not valid.';
-            break;
-          default:
-            errorMessage = 'An unknown error occurred.';
-            break;
-        }
-      }
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(errorMessage)),

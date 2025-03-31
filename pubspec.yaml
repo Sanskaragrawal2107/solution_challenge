@@ -30,17 +30,18 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
-
+  supabase_flutter: ^2.3.4
+  flutter_svg: ^2.0.10+1
+  http: ^1.2.1
+  flutter_dotenv: ^5.1.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   google_generative_ai: ^0.4.6
-
-  firebase_core: ^3.9.0
-  firebase_auth: ^5.3.4
-  flutter_svg: ^2.0.9
+  file_picker: ^9.2.3
+  intl: ^0.20.2
+  url_launcher: ^6.3.1
 
 dev_dependencies:
   flutter_test:
@@ -59,6 +60,7 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 flutter:
   assets:
+    - .env
     - images/dekstop_welcome.jpeg
     - images/phone_welcome.jpeg
     - images/desktop_welcome2.jpg
